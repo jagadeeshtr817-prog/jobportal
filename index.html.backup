@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Application Portal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Job Application Portal</h1>
+    <p>Your gateway to exciting career opportunities</p>
+  </header>
+
+  <nav>
+    <a href="#jobs">Jobs</a>
+    <a href="#features">Features</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <section class="hero">
+    <h2>Find Your Dream Job Today</h2>
+    <p>Browse thousands of openings and apply online with ease.</p>
+    <button onclick="scrollToJobs()">Browse Jobs</button>
+  </section>
+
+  <section class="section" id="jobs">
+    <h3>Latest Job Openings</h3>
+    <div class="cards" id="job-list">
+      <!-- Jobs will load here via JavaScript -->
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <h3>Why Use Our Portal?</h3>
+    <div class="cards">
+      <div class="card">
+        <h4>Easy Applications</h4>
+        <p>Apply for multiple jobs with a single profile.</p>
+      </div>
+      <div class="card">
+        <h4>Verified Employers</h4>
+        <p>We list only trusted and verified companies.</p>
+      </div>
+      <div class="card">
+        <h4>Real-Time Updates</h4>
+        <p>Stay notified about your application status instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <p>&copy; 2025 Job Application Portal. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

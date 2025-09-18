@@ -1,0 +1,55 @@
+// Example dynamic job listings
+const jobs = [
+	{ title: 'Frontend Developer', company: 'TechSoft', location: 'Bangalore' },
+	{ title: 'Backend Engineer', company: 'CloudWorks', location: 'Hyderabad' },
+	{ title: 'UI/UX Designer', company: 'DesignPro', location: 'Remote' },
+	{ title: 'Data Analyst', company: 'DataGen', location: 'Chennai' },
+	{ title: 'DevOps Engineer', company: 'InfraEdge', location: 'Pune' }
+];
+
+function renderJobs(filter = '') {
+	const jobList = document.getElementById('job-list');
+	jobList.innerHTML = '';
+	jobs
+		.filter(job => job.title.toLowerCase().includes(filter.toLowerCase()) || job.company.toLowerCase().includes(filter.toLowerCase()) || job.location.toLowerCase().includes(filter.toLowerCase()))
+		.forEach(job => {
+			const div = document.createElement('div');
+			div.className = 'card';
+			div.innerHTML = `<h4>${job.title}</h4><p>${job.company} - ${job.location}</p><button class='apply-btn'>Apply</button>`;
+			jobList.appendChild(div);
+		});
+}
+
+// Search/filter functionality
+document.addEventListener('DOMContentLoaded', () => {
+	// Add search box above job list
+	const jobsSection = document.getElementById('jobs');
+	const searchBox = document.createElement('input');
+	searchBox.type = 'text';
+	searchBox.placeholder = 'Search jobs by title, company, or location...';
+	searchBox.style = 'width:100%;max-width:400px;margin:0 auto 30px auto;display:block;padding:10px;border-radius:6px;border:1px solid #ddd;font-size:1rem;';
+	jobsSection.insertBefore(searchBox, jobsSection.children[1]);
+
+	searchBox.addEventListener('input', e => {
+		renderJobs(e.target.value);
+	});
+
+	renderJobs();
+
+	// Smooth scroll for Browse Jobs button
+	document.querySelectorAll('button, nav a').forEach(el => {
+		el.addEventListener('click', function(e) {
+			if (el.textContent.includes('Browse Jobs') || el.getAttribute('href') === '#jobs') {
+				e.preventDefault();
+				document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+			}
+		});
+	});
+
+	// Apply button functionality
+	document.getElementById('job-list').addEventListener('click', function(e) {
+		if (e.target.classList.contains('apply-btn')) {
+			alert('Thank you for applying! (Demo)');
+		}
+	});
+});

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .job-section {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .job-title {
+            color: #007bff;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .applications-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .applications-table th,
+        .applications-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .applications-table th {
+            background: #f8f9fa;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Master Dashboard</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <div class="search-section">
+            <input type="text" id="searchInput" placeholder="Search by name, email, or job title..." class="search-input">
+        </div>
+        <div class="stats-container">
+            <div class="stat-card total-applications">
+                <h3>Total Applications</h3>
+                <p id="totalApplications">0</p>
+            </div>
+            <div class="stat-card total-jobs">
+                <h3>Total Jobs</h3>
+                <p id="totalJobs">0</p>
+            </div>
+        </div>
+        <div id="applicationsContainer"></div>
+    </div>
+
+    <style>
+        .search-section {
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #4361ee;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .stat-card p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 1.1rem;
+        }
+    </style>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+        let allApplications = {};
+        
+        async function fetchApplications() {
+            try {
+                const token = localStorage.getItem('masterToken');
+                if (!token) {
+                    window.location.href = 'master-login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/api/master/applications`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('masterToken');
+                    window.location.href = 'master-login.html';
+                    return;
+                }
+
+                allApplications = await response.json();
+                console.log('Received applications data:', allApplications);
+                updateDashboard();
+            } catch (error) {
+                console.error('Error fetching applications:', error);
+                alert('Error fetching applications. Please try again.');
+            }
+        }
+
+        function filterApplications(searchText) {
+            const filteredData = {};
+            const searchLower = searchText.toLowerCase();
+            
+            for (const [jobTitle, applications] of Object.entries(allApplications)) {
+                const filteredApps = applications.filter(app => 
+                    (app.name || '').toLowerCase().includes(searchLower) ||
+                    (app.email || '').toLowerCase().includes(searchLower) ||
+                    jobTitle.toLowerCase().includes(searchLower)
+                );
+                
+                if (filteredApps.length > 0) {
+                    filteredData[jobTitle] = filteredApps;
+                }
+            }
+            
+            return filteredData;
+        }
+
+        function updateDashboard(searchText = '') {
+            const displayData = searchText ? filterApplications(searchText) : allApplications;
+            const container = document.getElementById('applicationsContainer');
+            container.innerHTML = '';
+
+            // Update stats
+            let totalApps = 0;
+            const totalJobs = Object.keys(displayData).length;
+            Object.values(displayData).forEach(apps => {
+                totalApps += apps.length;
+            });
+            
+            document.getElementById('totalApplications').textContent = totalApps;
+            document.getElementById('totalJobs').textContent = totalJobs;
+
+            if (Object.keys(displayData).length === 0) {
+                container.innerHTML = '<div class="no-results">No applications found matching your search.</div>';
+                return;
+            }
+
+            for (const [jobTitle, applications] of Object.entries(displayData)) {
+                const section = document.createElement('div');
+                section.className = 'job-section';
+                section.innerHTML = `
+                    <h2 class="job-title">${jobTitle}</h2>
+                    <p>Total Applications: ${applications.length}</p>
+                    <table class="applications-table">
+                        <thead>
+                            <tr>
+                                <th>Application ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Experience</th>
+                                <th>Notice Period</th>
+                                <th>Expected CTC</th>
+                                <th>Applied On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${applications.map(app => `
+                                <tr>
+                                    <td>${app._id || app.applicationId}</td>
+                                    <td>${app.name || 'N/A'}</td>
+                                    <td>${app.email || 'N/A'}</td>
+                                    <td>${app.phone || 'N/A'}</td>
+                                    <td>${app.experience || 'N/A'} years</td>
+                                    <td>${app.noticePeriod || 'N/A'} days</td>
+                                    <td>₹${app.expectedCtc || 'N/A'} LPA</td>
+                                    <td>${new Date(app.createdAt || app.applicationDate).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                container.appendChild(section);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('masterToken');
+            window.location.href = 'master-login.html';
+        }
+
+        // Set up search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            updateDashboard(e.target.value);
+        });
+
+        // Check authentication and fetch data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('masterToken');
+            if (!token) {
+                window.location.href = 'master-login.html';
+                return;
+            }
+            fetchApplications();
+        });
+    </script>
+</body>
+</html>
+
